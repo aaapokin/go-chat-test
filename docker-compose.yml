@@ -1,0 +1,40 @@
+version: '3.7'
+
+x-gow: &gow
+  env_file: ./.env
+  build:
+      context: ./
+      dockerfile: ./docker/go/gow.Dockerfile
+  working_dir: /app
+#  user: ${system_uid}:${system_gid}
+  volumes:
+    - ./:/app
+  depends_on:
+    postgres:
+        condition: service_healthy
+
+services:
+  auth:
+    <<: *gow
+    command: sh -c "gow run -v ./cmd/auth/main.go"
+    ports:
+      - "${auth_port}:${auth_port}"
+
+  postgres:
+    build: docker/postgres
+    hostname: postgres
+    restart: always
+    healthcheck:
+        test: "pg_isready"
+        start_period: 1s
+        interval: 2s
+        timeout: 30s
+        retries: 100
+    ports:
+        - "5432:5432"
+    volumes:
+        - ./docker/postgres/data:/var/lib/postgresql/data
+    environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+
