@@ -1,7 +1,7 @@
 get-deps:
 	docker compose run --rm auth sh -c "go get -u google.golang.org/protobuf/cmd/protoc-gen-go \
 										&& go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc \
-										&& go get -u  github.com/brianvoe/gofakeit"
+										&& go get -u github.com/brianvoe/gofakeit"
 	make move-vendor
 
 logs:
@@ -30,12 +30,19 @@ run:
 
 generate:
 	make generate-api-user-v1
+	make generate-api-chat-v1
 generate-api-user-v1:
 	mkdir -p pkg/auth/user_v1
 	docker compose run --rm auth sh -c "protoc --proto_path=api/auth/user_v1 \
 	--go_out=pkg/auth/user_v1 --go_opt=paths=source_relative \
 	--go-grpc_out=pkg/auth/user_v1 --go-grpc_opt=paths=source_relative \
 	api/auth/user_v1/user.proto"
+generate-api-chat-v1:
+	mkdir -p pkg/chat-server/chat_v1
+	docker compose run --rm auth sh -c "protoc --proto_path=api/chat-server/chat_v1 \
+	--go_out=pkg/chat-server/chat_v1 --go_opt=paths=source_relative \
+	--go-grpc_out=pkg/chat-server/chat_v1 --go-grpc_opt=paths=source_relative \
+	api/chat-server/chat_v1/chat.proto"
 
 # make install github.com/sirupsen/logrus	
 install:
